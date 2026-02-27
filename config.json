@@ -1,0 +1,13 @@
+{
+  "conf_thresh": 0.7,
+  "img_size": 224,
+  "model": "resnet18",
+  "training": {
+    "head_epochs": 3,
+    "ft_epochs": 3,
+    "lr_head": 0.0003,
+    "lr_ft": 0.0001,
+    "batch_size": 64,
+    "fine_tune": "layer4+fc"
+  }
+}
