@@ -198,13 +198,138 @@ This transforms the project from **classification** to **uncertainty-aware model
 
 ---
 
-# 🚀 Next Step — Layer 3
+# 🔥 Layer 3 — Grad-CAM Interpretability
 
-Layer 3 will focus on **calibration and reliability**:
+## 🎯 Objective
 
-- Is the model’s confidence trustworthy?  
-- When it predicts 80%, is it correct ~80% of the time?  
-- Can we improve calibration?  
+Understand **why** the Layer 1 classifier predicts a galaxy as:
+
+- **Elliptical**
+- **Spiral**
+- **Irregular**
+
+using **Grad-CAM visual explanations**.
+
+Instead of only asking:
+
+> What class is this galaxy?
+
+Layer 3 asks:
+
+> What visual regions of the galaxy drive this prediction?
+
+---
+
+## 🧠 Concept
+
+Deep learning models can achieve strong performance while relying on:
+
+- background artifacts  
+- brightness patterns  
+- non-physical shortcuts  
+
+Grad-CAM helps reveal whether the model is focusing on **meaningful astrophysical structure**, such as:
+
+- spiral arms  
+- central bulges  
+- asymmetric / clumpy regions  
+
+---
+
+## 🏗 Method
+
+- Model: **Layer 1 fine-tuned ResNet-18**
+- Data: **Layer 1 test split (unseen galaxies)**
+- Target layer: **`layer4` (last convolutional block)**
+- Technique: **Grad-CAM heatmaps + overlay visualization**
+
+For each galaxy, we generate:
+
+- original image  
+- Grad-CAM heatmap  
+- overlay (image + attention map)  
+
+---
+
+## 🔬 Analysis Performed
+
+### ✅ Correct Prediction Galleries
+
+We analyze correctly classified galaxies to verify whether the model focuses on expected structures:
+
+- spirals → arms and disk  
+- ellipticals → smooth central brightness  
+- irregulars → diffuse / clumpy regions  
+
+---
+
+### ❌ Failure Case Galleries
+
+We analyze incorrect predictions, especially **high-confidence mistakes**, to understand model failure modes:
+
+- missed faint spiral arms  
+- confusion between compact irregulars and ellipticals  
+- over-reliance on central brightness  
+
+---
+
+## 🖼️ Grad-CAM Galleries
+
+Layer 3 produces visual galleries of:
+
+- Correct predictions (per class)  
+- Most confident wrong predictions  
+
+These galleries allow **direct visual inspection** of model behavior.
+
+---
+
+## 📊 Observations
+
+Typical patterns observed:
+
+- **Elliptical galaxies** → attention concentrated on smooth central light profile  
+- **Spiral galaxies** → attention highlights arm structure and outer disk  
+- **Irregular galaxies** → attention is more spatially diffuse and follows asymmetric regions  
+
+Failure cases suggest:
+
+- faint spiral structure is sometimes ignored when bulge dominates  
+- compact irregular galaxies may resemble ellipticals  
+- some predictions rely too heavily on central brightness  
+
+---
+
+## 🧠 What Layer 3 Adds
+
+Layer 1 answered:
+
+> What class is this galaxy?
+
+Layer 2 answered:
+
+> How uncertain is its morphology?
+
+Layer 3 answers:
+
+> What visual evidence is the model using?
+
+This introduces **interpretability**, making the model:
+
+- more transparent  
+- more trustworthy  
+- more aligned with scientific reasoning  
+
+---
+
+## 🚀 Next Step — Layer 4
+
+Layer 4 will focus on **model reliability and robustness**:
+
+- confidence calibration (is 80% really 80%?)  
+- robustness to noise and perturbations  
+- domain shift analysis  
+ 
 
 ---
 
