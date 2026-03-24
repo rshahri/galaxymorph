@@ -5,10 +5,10 @@ GalaxyMorph is an astronomy-focused machine learning project exploring galaxy mo
 
 This repository follows a structured, multi-layer development plan:
 
-- **Layer 1:** Clean, reproducible 3-class baseline (completed)  
-- **Layer 2:** Soft-label modeling and uncertainty analysis (completed)  
-- **Layer 3:** Grad-CAM interpretability and model inspection (completed)  
-- **Layer 4:** Robustness analysis and mitigation (completed)  
+- **Layer 1:** Clean, reproducible 3-class baseline  
+- **Layer 2:** Soft-label modeling and uncertainty analysis  
+- **Layer 3:** Grad-CAM interpretability and model inspection
+- **Layer 4:** Robustness analysis and mitigation
 
 ---
 
