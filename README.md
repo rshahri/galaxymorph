@@ -7,8 +7,8 @@ This repository follows a structured, multi-layer development plan:
 
 - **Layer 1:** Clean, reproducible 3-class baseline (completed)  
 - **Layer 2:** Soft-label modeling and uncertainty analysis (completed)  
-- Layer 3: Calibration and uncertainty reliability (next)  
-- Layer 4: Robustness, domain shift, and scientific interpretability  
+- **Layer 3:** Grad-CAM interpretability and model inspection (completed)  
+- **Layer 4:** Robustness analysis and mitigation (completed)  
 
 ---
 
@@ -28,7 +28,7 @@ It is a structured Astro-AI engineering pipeline.
 
 # 🧠 Layer 1 — Baseline Morphology Classifier
 
-## Objective
+## 🎯 Objective
 
 Train a clean 3-class classifier:
 
@@ -42,34 +42,34 @@ Using high-confidence Galaxy Zoo labels.
 
 ## 📦 Dataset
 
-- Source: Galaxy Zoo – The Galaxy Challenge (Kaggle)
-- Images: `images_training_rev1`
-- Labels: `training_solutions_rev1.csv`
-- ~61k galaxies
-- Confidence filtering: `p_max ≥ 0.7`
+- Source: Galaxy Zoo – The Galaxy Challenge (Kaggle)  
+- Images: `images_training_rev1`  
+- Labels: `training_solutions_rev1.csv`  
+- ~61k galaxies  
+- Confidence filtering: `p_max ≥ 0.7`  
 
 ### Label Mapping
 
-- `Elliptical = Class1.1`
-- `Spiral = Class1.2 × Class2.1`
-- `Irregular = Class1.2 × Class6.1`
+- `Elliptical = Class1.1`  
+- `Spiral = Class1.2 × Class2.1`  
+- `Irregular = Class1.2 × Class6.1`  
 
 ---
 
 ## 🏗 Model
 
-- ResNet-18 (ImageNet pretrained)
-- Stage 1: frozen backbone
-- Stage 2: fine-tuned layer4 + FC
-- Loss: CrossEntropy (class-weighted)
+- ResNet-18 (ImageNet pretrained)  
+- Stage 1: frozen backbone  
+- Stage 2: fine-tuned layer4 + FC  
+- Loss: CrossEntropy (class-weighted)  
 
 ---
 
 ## 📊 Results
 
-- Validation macro-F1 ≈ **0.92**
-- Strong confusion matrix
-- Stable training behavior
+- Validation macro-F1 ≈ **0.92**  
+- Strong confusion matrix  
+- Stable training behavior  
 
 ---
 
@@ -85,16 +85,18 @@ Using high-confidence Galaxy Zoo labels.
 
 # 🌌 Layer 2 — Soft Label Modeling (Uncertainty-Aware)
 
-## Conceptual Shift
+## 🧠 Conceptual Shift
 
 Layer 1 treated galaxy morphology as a **hard classification problem**.
 
 Layer 2 models it as a **probabilistic problem**, using the full vote fraction distribution from Galaxy Zoo.
 
 Instead of predicting:
+
 ``elliptical``
 
 we predict:
+
 ``[0.55, 0.40, 0.05]``
 
 
@@ -116,9 +118,9 @@ Rather than collapsing them into a single class.
 
 ## 🏗 Model Changes
 
-- Same architecture: **ResNet-18**
-- Output: 3 logits → softmax probabilities
-- Loss: **KL Divergence**
+- Same architecture: **ResNet-18**  
+- Output: 3 logits → softmax probabilities  
+- Loss: **KL Divergence**  
 
 Training strategy:
 
@@ -129,10 +131,8 @@ Training strategy:
 
 ## 📊 Evaluation Metrics
 
-Layer 2 introduces distribution-aware evaluation:
-
-- **KL Divergence (primary)** → how close predicted distribution is to human votes  
-- **MSE (secondary)** → numerical distance between probabilities  
+- **KL Divergence (primary)** → distribution similarity  
+- **MSE (secondary)** → probability distance  
 - **Macro-F1 (argmax)** → comparison with Layer 1  
 
 ---
@@ -148,12 +148,8 @@ We compute entropy of:
 
 This measures **how ambiguous a galaxy is**.
 
-Key insight:
-
 - Low entropy → clear morphology  
 - High entropy → ambiguous / transitional galaxy  
-
-The model’s entropy is compared to human entropy to assess whether it learns **where uncertainty exists**.
 
 ---
 
@@ -161,40 +157,41 @@ The model’s entropy is compared to human entropy to assess whether it learns *
 
 We visualize:
 
-### 1. High human disagreement
+### 1. High human disagreement  
 Galaxies where volunteers strongly disagreed  
-→ often mergers, faint structures, edge cases  
+→ mergers, faint structures, edge cases  
 
-### 2. Model overconfidence cases
+### 2. Model overconfidence cases  
 Galaxies where:
+
 - humans are uncertain  
 - model is confident  
 
 These reveal:
-- potential model shortcuts  
-- difficult morphological structures  
-- scientifically interesting edge cases  
+- potential shortcuts  
+- difficult morphologies  
+- scientifically interesting cases  
 
 ---
 
 ## 📊 Results Summary
 
 - Stable KL training with clear improvement after fine-tuning  
-- Model learns smooth probability distributions  
-- Entropy patterns align with human uncertainty (dataset-dependent)  
-- Argmax macro-F1 remains strong but slightly lower than Layer 1 (expected)
+- Smooth probability predictions  
+- Entropy aligns with human uncertainty  
+- Slight drop in macro-F1 (expected)
 
 ---
 
 ## 🧠 What Layer 2 Adds
 
 Layer 1 answered:
+
 > What class is this galaxy?
 
 Layer 2 answers:
-> How uncertain is its morphology?
 
-This transforms the project from **classification** to **uncertainty-aware modeling**, closer to real astrophysical data interpretation.
+> How uncertain is its morphology?
 
 ---
 
@@ -202,134 +199,136 @@ This transforms the project from **classification** to **uncertainty-aware model
 
 ## 🎯 Objective
 
-Understand **why** the Layer 1 classifier predicts a galaxy as:
+Understand **why** the model predicts a galaxy as:
 
-- **Elliptical**
-- **Spiral**
-- **Irregular**
+- Elliptical  
+- Spiral  
+- Irregular  
 
 using **Grad-CAM visual explanations**.
-
-Instead of only asking:
-
-> What class is this galaxy?
-
-Layer 3 asks:
-
-> What visual regions of the galaxy drive this prediction?
 
 ---
 
 ## 🧠 Concept
 
-Deep learning models can achieve strong performance while relying on:
-
-- background artifacts  
-- brightness patterns  
-- non-physical shortcuts  
-
-Grad-CAM helps reveal whether the model is focusing on **meaningful astrophysical structure**, such as:
+Verify whether the model focuses on **meaningful astrophysical structures**:
 
 - spiral arms  
 - central bulges  
-- asymmetric / clumpy regions  
+- asymmetric regions  
+
+instead of artifacts.
 
 ---
 
 ## 🏗 Method
 
-- Model: **Layer 1 fine-tuned ResNet-18**
-- Data: **Layer 1 test split (unseen galaxies)**
-- Target layer: **`layer4` (last convolutional block)**
-- Technique: **Grad-CAM heatmaps + overlay visualization**
-
-For each galaxy, we generate:
-
-- original image  
-- Grad-CAM heatmap  
-- overlay (image + attention map)  
+- Model: Layer 1 fine-tuned ResNet-18  
+- Data: test split  
+- Layer: `layer4`  
+- Technique: Grad-CAM heatmaps  
 
 ---
 
-## 🔬 Analysis Performed
+## 🔬 Analysis
 
-### ✅ Correct Prediction Galleries
+### ✅ Correct Predictions
 
-We analyze correctly classified galaxies to verify whether the model focuses on expected structures:
+- Spirals → attention on arms  
+- Ellipticals → central brightness  
+- Irregulars → diffuse structure  
 
-- spirals → arms and disk  
-- ellipticals → smooth central brightness  
-- irregulars → diffuse / clumpy regions  
+### ❌ Failure Cases
 
----
-
-### ❌ Failure Case Galleries
-
-We analyze incorrect predictions, especially **high-confidence mistakes**, to understand model failure modes:
-
-- missed faint spiral arms  
-- confusion between compact irregulars and ellipticals  
-- over-reliance on central brightness  
-
----
-
-## 🖼️ Grad-CAM Galleries
-
-Layer 3 produces visual galleries of:
-
-- Correct predictions (per class)  
-- Most confident wrong predictions  
-
-These galleries allow **direct visual inspection** of model behavior.
-
----
-
-## 📊 Observations
-
-Typical patterns observed:
-
-- **Elliptical galaxies** → attention concentrated on smooth central light profile  
-- **Spiral galaxies** → attention highlights arm structure and outer disk  
-- **Irregular galaxies** → attention is more spatially diffuse and follows asymmetric regions  
-
-Failure cases suggest:
-
-- faint spiral structure is sometimes ignored when bulge dominates  
-- compact irregular galaxies may resemble ellipticals  
-- some predictions rely too heavily on central brightness  
+- Missed faint spiral arms  
+- Confusion with compact galaxies  
+- Over-focus on bulge  
 
 ---
 
 ## 🧠 What Layer 3 Adds
 
-Layer 1 answered:
-
-> What class is this galaxy?
-
-Layer 2 answered:
-
-> How uncertain is its morphology?
-
 Layer 3 answers:
 
 > What visual evidence is the model using?
 
-This introduces **interpretability**, making the model:
-
-- more transparent  
-- more trustworthy  
-- more aligned with scientific reasoning  
+This introduces **interpretability and trust**.
 
 ---
 
-## 🚀 Next Step — Layer 4
+# 🛡️ Layer 4 — Robustness & Reliability
 
-Layer 4 will focus on **model reliability and robustness**:
+## 🎯 Objective
 
-- confidence calibration (is 80% really 80%?)  
-- robustness to noise and perturbations  
-- domain shift analysis  
- 
+Evaluate how stable the model is under **realistic image degradations**:
+
+- noise  
+- blur  
+- brightness shifts  
+
+Then improve robustness using **data augmentation**.
+
+---
+
+## 🧪 Perturbations Simulated
+
+- **Gaussian noise** → sensor noise  
+- **Gaussian blur** → low resolution / seeing  
+- **Brightness shifts** → exposure variation  
+
+---
+
+## 📊 Baseline Model Behavior
+
+Performance drop from clean:
+
+- Noise → **large drop (~ -0.19)**  
+- Blur → **moderate drop (~ -0.12)**  
+- Brightness → **minimal effect (~ 0.00)**  
+
+👉 The model is highly sensitive to noise and somewhat sensitive to blur.
+
+---
+
+## 🛠️ Mitigation Strategy
+
+Train a robustness-aware model with:
+
+- blur augmentation  
+- brightness variation  
+- geometric augmentation  
+
+---
+
+## 📈 Robust Model Results
+
+Performance drop from clean:
+
+- Noise → still high (~ -0.20)  
+- Blur → **significantly improved (~ -0.05)**  
+- Brightness → stable  
+
+---
+
+## 🔬 Key Findings
+
+- Model relies on **fine pixel-level features** → sensitive to noise  
+- Learns **larger-scale structure** with augmentation → improved blur robustness  
+- Already robust to brightness due to normalization + pretrained features  
+
+---
+
+## 🧠 What Layer 4 Adds
+
+Layer 4 answers:
+
+> How reliable is the model under real-world conditions?
+
+This introduces:
+
+- robustness evaluation  
+- stress testing  
+- mitigation strategies  
 
 ---
 
@@ -339,13 +338,13 @@ Galaxy morphology is not binary truth.
 
 This project focuses on:
 
-- Modeling human disagreement  
-- Understanding uncertainty  
-- Bridging ML engineering with astrophysical reasoning  
+- modeling human disagreement  
+- understanding uncertainty  
+- explaining model decisions  
+- ensuring robustness  
 
 ---
 
 # 👩‍🚀 Author
 
-Reihaneh Shahri  
-MSc Artificial Intelligence — Astro-AI Focus  
+Reihaneh Shahri
